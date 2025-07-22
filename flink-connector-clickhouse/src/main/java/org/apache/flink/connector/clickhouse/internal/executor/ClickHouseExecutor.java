@@ -113,9 +113,10 @@ public interface ClickHouseExecutor extends Serializable {
             String[] fieldNames,
             LogicalType[] fieldTypes,
             ClickHouseDmlOptions options) {
+        String settingsClause = ClickHouseStatementFactory.buildSettingsClause(options.getSettings());
         String insertSql =
                 ClickHouseStatementFactory.getInsertIntoStatement(
-                        tableName, databaseName, fieldNames);
+                        tableName, databaseName, fieldNames, settingsClause);
         ClickHouseRowConverter converter = new ClickHouseRowConverter(RowType.of(fieldTypes));
         return new ClickHouseBatchExecutor(insertSql, converter, options);
     }
@@ -129,9 +130,10 @@ public interface ClickHouseExecutor extends Serializable {
             String[] partitionFields,
             LogicalType[] fieldTypes,
             ClickHouseDmlOptions options) {
+        String settingsClause = ClickHouseStatementFactory.buildSettingsClause(options.getSettings());
         String insertSql =
                 ClickHouseStatementFactory.getInsertIntoStatement(
-                        tableName, databaseName, fieldNames);
+                        tableName, databaseName, fieldNames, settingsClause);
         String updateSql =
                 ClickHouseStatementFactory.getUpdateStatement(
                         tableName,
@@ -139,10 +141,11 @@ public interface ClickHouseExecutor extends Serializable {
                         clusterName,
                         fieldNames,
                         keyFieldNames,
-                        partitionFields);
+                        partitionFields,
+                        settingsClause);
         String deleteSql =
                 ClickHouseStatementFactory.getDeleteStatement(
-                        tableName, databaseName, clusterName, keyFieldNames);
+                        tableName, databaseName, clusterName, keyFieldNames, settingsClause);
 
         // Re-sort the order of fields to fit the sql statement.
         int[] keyFields =

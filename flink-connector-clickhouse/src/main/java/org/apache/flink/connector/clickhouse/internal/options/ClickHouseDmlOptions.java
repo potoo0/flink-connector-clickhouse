@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 /** ClickHouse data modify language options. */
 public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
@@ -51,6 +52,8 @@ public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
 
     private final Integer parallelism;
 
+    private final Properties settings;
+
     private ClickHouseDmlOptions(
             String url,
             @Nullable String username,
@@ -66,7 +69,8 @@ public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
             List<String> shardingKey,
             boolean shardingUseTableDef,
             boolean ignoreDelete,
-            Integer parallelism) {
+            Integer parallelism,
+            Properties settings) {
         super(url, username, password, databaseName, tableName);
         this.batchSize = batchSize;
         this.flushInterval = flushInterval;
@@ -78,6 +82,7 @@ public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
         this.shardingUseTableDef = shardingUseTableDef;
         this.ignoreDelete = ignoreDelete;
         this.parallelism = parallelism;
+        this.settings = settings;
     }
 
     public int getBatchSize() {
@@ -120,6 +125,10 @@ public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
         return parallelism;
     }
 
+    public Properties getSettings() {
+        return settings;
+    }
+
     /** Builder for {@link ClickHouseDmlOptions}. */
     public static class Builder {
         private String url;
@@ -137,6 +146,7 @@ public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
         private boolean shardingUseTableDef;
         private boolean ignoreDelete;
         private Integer parallelism;
+        private Properties settings;
 
         public Builder() {}
 
@@ -215,6 +225,11 @@ public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
             return this;
         }
 
+        public Builder withSettings(Properties settings) {
+            this.settings = settings;
+            return this;
+        }
+
         public ClickHouseDmlOptions build() {
             return new ClickHouseDmlOptions(
                     url,
@@ -231,7 +246,8 @@ public class ClickHouseDmlOptions extends ClickHouseConnectionOptions {
                     shardingKey,
                     shardingUseTableDef,
                     ignoreDelete,
-                    parallelism);
+                    parallelism,
+                    settings);
         }
     }
 }

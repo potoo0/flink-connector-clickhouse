@@ -21,7 +21,10 @@ import org.apache.flink.connector.clickhouse.util.ClickHouseUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import javax.annotation.Nullable;
+
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -49,17 +52,20 @@ public class ClickHouseStatementFactory {
             String tableName,
             String databaseName,
             String[] selectFields,
-            String[] conditionFields) {
+            String[] conditionFields,
+            @Nullable Properties settings) {
         String selectStatement = getSelectStatement(tableName, databaseName, selectFields);
         String whereClause =
                 Arrays.stream(conditionFields)
                         .map(f -> format("%s = ?", quoteIdentifier(f)))
                         .collect(Collectors.joining(" AND "));
-        return selectStatement + (conditionFields.length > 0 ? " WHERE " + whereClause : "");
+        String settingsClause = buildSettingsClause(settings);
+        return selectStatement + (conditionFields.length > 0 ? " WHERE " + whereClause : "")
+                + settingsClause;
     }
 
     public static String getInsertIntoStatement(
-            String tableName, String databaseName, String[] fieldNames) {
+            String tableName, String databaseName, String[] fieldNames, String settingsClause) {
         String columns =
                 Arrays.stream(fieldNames)
                         .map(ClickHouseUtil::quoteIdentifier)
@@ -71,7 +77,9 @@ public class ClickHouseStatementFactory {
                 fromTableClause(tableName, databaseName),
                 "(",
                 columns,
-                ") VALUES (",
+                ")",
+                settingsClause,
+                "VALUES (",
                 placeholders,
                 ")");
     }
@@ -82,7 +90,7 @@ public class ClickHouseStatementFactory {
             String clusterName,
             String[] fieldNames,
             String[] keyFields,
-            String[] partitionFields) {
+            String[] partitionFields, String settingsClause) {
         String setClause =
                 Arrays.stream(fieldNames)
                         .filter(f -> !ArrayUtils.contains(keyFields, f))
@@ -106,11 +114,13 @@ public class ClickHouseStatementFactory {
                 " UPDATE ",
                 setClause,
                 " WHERE ",
-                conditionClause);
+                conditionClause,
+                settingsClause);
     }
 
     public static String getDeleteStatement(
-            String tableName, String databaseName, String clusterName, String[] conditionFields) {
+            String tableName, String databaseName, String clusterName, String[] conditionFields,
+            String settingsClause) {
         String conditionClause =
                 Arrays.stream(conditionFields)
                         .map((f) -> quoteIdentifier(f) + "=?")
@@ -126,7 +136,8 @@ public class ClickHouseStatementFactory {
                 fromTableClause(tableName, databaseName),
                 onClusterClause,
                 " DELETE WHERE ",
-                conditionClause);
+                conditionClause,
+                settingsClause);
     }
 
     private static String fromTableClause(String tableName, String databaseName) {
@@ -135,5 +146,23 @@ public class ClickHouseStatementFactory {
         }
 
         return format("%s.%s", quoteIdentifier(databaseName), quoteIdentifier(tableName));
+    }
+
+    public static String buildSettingsClause(@Nullable Properties settings) {
+        if (settings == null) {
+            return "";
+        }
+
+        int idx = 0;
+        StringBuilder builder = new StringBuilder();
+        for (String name : settings.stringPropertyNames()) {
+            if (idx++ != 0) {
+                builder.append(", ");
+            }
+            builder.append(name)
+                    .append(" = ")
+                    .append(settings.getProperty(name));
+        }
+        return builder.isEmpty() ? "" : (" SETTINGS " + builder + " ");
     }
 }

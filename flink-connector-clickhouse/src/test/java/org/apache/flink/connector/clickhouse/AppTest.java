@@ -17,6 +17,8 @@
 
 package org.apache.flink.connector.clickhouse;
 
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.connector.clickhouse.internal.ClickHouseStatementFactory;
 import org.apache.flink.connector.clickhouse.internal.options.ClickHouseConnectionOptions;
 import org.apache.flink.connector.clickhouse.internal.partitioner.ValuePartitioner;
 import org.apache.flink.connector.clickhouse.internal.schema.ClusterSpec;
@@ -43,6 +45,9 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 
@@ -82,7 +87,7 @@ public class AppTest {
     public void partitionTest1() {
         ClickHouseShardBetweenParametersProvider provider =
                 new ClickHouseShardBetweenParametersProvider(
-                                -100, 100, new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
+                        -100, 100, new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
                         .ofBatchNum(23)
                         .calculate();
         Serializable[][] shardIdValues = provider.getShardIdValues();
@@ -94,7 +99,7 @@ public class AppTest {
     public void partitionTest2() {
         ClickHouseParametersProvider provider =
                 new ClickHouseShardBetweenParametersProvider(
-                                -100, -100, new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
+                        -100, -100, new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
                         .ofBatchNum(3)
                         .calculate();
         Serializable[][] shardIdValues = provider.getShardIdValues();
@@ -223,19 +228,38 @@ public class AppTest {
     @Test
     public void parseJdbcUriTest() {
         String[] urls = {
-            "jdbc:ch://localhost:8123",
-            "jdbc:ch://localhost:8123?",
-            "jdbc:ch://localhost:8123?ssl=true&sslmode=STRICT",
-            "jdbc:ch://localhost:8123/",
-            "jdbc:ch://localhost:8123/?ssl=true&sslmode=STRICT",
-            "jdbc:ch://localhost:8123/default?ssl=true&sslmode=STRICT",
-            "jdbc:ch://localhost:8123,127.0.0.1:8123/default?ssl=true&sslmode=STRICT"
+                "jdbc:ch://localhost:8123",
+                "jdbc:ch://localhost:8123?",
+                "jdbc:ch://localhost:8123?ssl=true&sslmode=STRICT",
+                "jdbc:ch://localhost:8123/",
+                "jdbc:ch://localhost:8123/?ssl=true&sslmode=STRICT",
+                "jdbc:ch://localhost:8123/default?ssl=true&sslmode=STRICT",
+                "jdbc:ch://localhost:8123,127.0.0.1:8123/default?ssl=true&sslmode=STRICT"
         };
 
         for (String url : urls) {
             String urlSuffix = new ClickHouseConnectionOptions(url).getUrlSuffix();
             String urlPrefix = url.substring(0, url.lastIndexOf(urlSuffix));
             assertEquals(url, urlPrefix + urlSuffix);
+        }
+    }
+
+    @Test
+    public void testBuildSettingsClause() {
+        List<Tuple2<Map<String, String>, String>> cases = List.of(
+                Tuple2.of(null, ""),
+                Tuple2.of(Map.of("k1", "v1"), " SETTINGS k1 = v1 "),
+                Tuple2.of(Map.of("k1", "'v1'"), " SETTINGS k1 = 'v1' "),
+                Tuple2.of(Map.of("k1", "'v1'", "k2", "v2"), " SETTINGS k1 = 'v1', k2 = v2 ")
+        );
+        for (Tuple2<Map<String, String>, String> aCase : cases) {
+            Properties settings = null;
+            if (aCase.f0 != null) {
+                settings = new Properties();
+                settings.putAll(aCase.f0);
+            }
+            String actual = ClickHouseStatementFactory.buildSettingsClause(settings);
+            assertEquals("properties for " + aCase.f0, aCase.f1, actual);
         }
     }
 }

@@ -112,7 +112,7 @@ public class ClickHouseShardInputFormat extends AbstractClickHouseInputFormat {
                         connectionProvider.createAndStoreShardConnection(
                                 shardUrl, engineFullSchema.getDatabase());
                 String query =
-                        getQuery(engineFullSchema.getTable(), engineFullSchema.getDatabase());
+                        getQuery(engineFullSchema.getTable(), engineFullSchema.getDatabase(), readOptions.getSettings());
                 PreparedStatement statement = connection.prepareStatement(query);
                 statements.add(i, statement);
 

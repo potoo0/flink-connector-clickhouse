@@ -102,7 +102,7 @@ public abstract class AbstractClickHouseInputFormat extends RichInputFormat<RowD
         return ret;
     }
 
-    protected String getQuery(String table, String database) {
+    protected String getQuery(String table, String database, Properties settings) {
         String queryTemplate =
                 ClickHouseStatementFactory.getSelectStatement(table, database, fieldNames);
         StringBuilder whereBuilder = new StringBuilder();
@@ -126,9 +126,10 @@ public abstract class AbstractClickHouseInputFormat extends RichInputFormat<RowD
             limitClause = "LIMIT " + limit;
         }
 
+        String settingsClause = ClickHouseStatementFactory.buildSettingsClause(settings);
         return !whereBuilder.isEmpty()
-                ? String.join(" ", queryTemplate, "WHERE", whereBuilder.toString(), limitClause)
-                : String.join(" ", queryTemplate, limitClause);
+                ? String.join(" ", queryTemplate, "WHERE", whereBuilder.toString(), limitClause, settingsClause)
+                : String.join(" ", queryTemplate, limitClause, settingsClause);
     }
 
     /** Builder. */

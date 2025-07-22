@@ -19,6 +19,8 @@ package org.apache.flink.connector.clickhouse.internal.options;
 
 import javax.annotation.Nullable;
 
+import java.util.Properties;
+
 /** ClickHouse read options. */
 public class ClickHouseReadOptions extends ClickHouseConnectionOptions {
 
@@ -31,6 +33,8 @@ public class ClickHouseReadOptions extends ClickHouseConnectionOptions {
     private final Long partitionLowerBound;
     private final Long partitionUpperBound;
 
+    private final Properties settings;
+
     private ClickHouseReadOptions(
             String url,
             @Nullable String username,
@@ -41,13 +45,15 @@ public class ClickHouseReadOptions extends ClickHouseConnectionOptions {
             String partitionColumn,
             Integer partitionNum,
             Long partitionLowerBound,
-            Long partitionUpperBound) {
+            Long partitionUpperBound,
+            Properties settings) {
         super(url, username, password, databaseName, tableName);
         this.useLocal = useLocal;
         this.partitionColumn = partitionColumn;
         this.partitionNum = partitionNum;
         this.partitionLowerBound = partitionLowerBound;
         this.partitionUpperBound = partitionUpperBound;
+        this.settings = settings;
     }
 
     public boolean isUseLocal() {
@@ -70,6 +76,10 @@ public class ClickHouseReadOptions extends ClickHouseConnectionOptions {
         return partitionUpperBound;
     }
 
+    public Properties getSettings() {
+        return settings;
+    }
+
     /** Builder for {@link ClickHouseReadOptions}. */
     public static class Builder {
         private String url;
@@ -82,6 +92,7 @@ public class ClickHouseReadOptions extends ClickHouseConnectionOptions {
         private Integer partitionNum;
         private Long partitionLowerBound;
         private Long partitionUpperBound;
+        private Properties settings;
 
         public Builder withUrl(String url) {
             this.url = url;
@@ -133,6 +144,11 @@ public class ClickHouseReadOptions extends ClickHouseConnectionOptions {
             return this;
         }
 
+        public Builder withSettings(Properties settings) {
+            this.settings = settings;
+            return this;
+        }
+
         public ClickHouseReadOptions build() {
             return new ClickHouseReadOptions(
                     url,
@@ -144,7 +160,8 @@ public class ClickHouseReadOptions extends ClickHouseConnectionOptions {
                     partitionColumn,
                     partitionNum,
                     partitionLowerBound,
-                    partitionUpperBound);
+                    partitionUpperBound,
+                    settings);
         }
     }
 }

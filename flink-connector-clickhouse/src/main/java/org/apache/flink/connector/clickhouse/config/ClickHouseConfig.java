@@ -24,6 +24,8 @@ public class ClickHouseConfig {
 
     public static final String PROPERTIES_PREFIX = "properties.";
 
+    public static final String SETTINGS_PREFIX = "settings.";
+
     public static final String URL = "url";
 
     public static final String USERNAME = "username";

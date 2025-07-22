@@ -34,6 +34,7 @@ import java.util.TimeZone;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfig.PROPERTIES_PREFIX;
+import static org.apache.flink.connector.clickhouse.config.ClickHouseConfig.SETTINGS_PREFIX;
 import static org.apache.flink.util.StringUtils.isNullOrWhitespaceOnly;
 
 /** clickhouse util. */
@@ -54,6 +55,19 @@ public class ClickHouseUtil {
                             final String subKey = key.substring((PROPERTIES_PREFIX).length());
                             properties.setProperty(subKey, value);
                         });
+        return properties;
+    }
+
+    public static Properties getClickHouseSetting(Map<String, String> tableOptions) {
+        final Properties properties = new Properties();
+
+        tableOptions.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(SETTINGS_PREFIX))
+                .forEach(
+                        e -> properties.setProperty(
+                                e.getKey().substring((SETTINGS_PREFIX).length()),
+                                e.getValue()));
+
         return properties;
     }
 

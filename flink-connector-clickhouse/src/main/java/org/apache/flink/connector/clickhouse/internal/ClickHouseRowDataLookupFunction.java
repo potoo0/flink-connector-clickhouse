@@ -88,7 +88,7 @@ public class ClickHouseRowDataLookupFunction extends LookupFunction {
         this.maxRetryTimes = maxRetryTimes;
         this.query =
                 ClickHouseStatementFactory.getSelectWhereStatement(
-                        options.getTableName(), options.getDatabaseName(), fieldNames, keyNames);
+                        options.getTableName(), options.getDatabaseName(), fieldNames, keyNames, options.getSettings());
         this.clickhouseRowConverter = new ClickHouseRowConverter(rowType);
         this.lookupKeyRowConverter =
                 new ClickHouseRowConverter(

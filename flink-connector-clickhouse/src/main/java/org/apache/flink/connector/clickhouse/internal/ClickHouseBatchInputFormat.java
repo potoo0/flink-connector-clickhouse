@@ -68,7 +68,7 @@ public class ClickHouseBatchInputFormat extends AbstractClickHouseInputFormat {
     public void openInputFormat() {
         try {
             Connection connection = connectionProvider.getOrCreateConnection();
-            String query = getQuery(readOptions.getTableName(), readOptions.getDatabaseName());
+            String query = getQuery(readOptions.getTableName(), readOptions.getDatabaseName(), readOptions.getSettings());
             statement = connection.prepareStatement(query);
         } catch (SQLException se) {
             throw new IllegalArgumentException("open() failed." + se.getMessage(), se);

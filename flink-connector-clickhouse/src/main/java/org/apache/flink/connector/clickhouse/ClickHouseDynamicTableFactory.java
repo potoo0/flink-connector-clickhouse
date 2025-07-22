@@ -42,6 +42,7 @@ import java.util.Set;
 
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfig.IDENTIFIER;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfig.PROPERTIES_PREFIX;
+import static org.apache.flink.connector.clickhouse.config.ClickHouseConfig.SETTINGS_PREFIX;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.CATALOG_IGNORE_PRIMARY_KEY;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.DATABASE_NAME;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.PASSWORD;
@@ -63,6 +64,7 @@ import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptio
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.USERNAME;
 import static org.apache.flink.connector.clickhouse.config.ClickHouseConfigOptions.USE_LOCAL;
 import static org.apache.flink.connector.clickhouse.util.ClickHouseUtil.getClickHouseProperties;
+import static org.apache.flink.connector.clickhouse.util.ClickHouseUtil.getClickHouseSetting;
 
 /** A {@link DynamicTableSinkFactory} for discovering {@link ClickHouseDynamicTableSink}. */
 public class ClickHouseDynamicTableFactory
@@ -74,7 +76,7 @@ public class ClickHouseDynamicTableFactory
     public DynamicTableSink createDynamicTableSink(Context context) {
         TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
         ReadableConfig config = helper.getOptions();
-        helper.validateExcept(PROPERTIES_PREFIX);
+        helper.validateExcept(PROPERTIES_PREFIX, SETTINGS_PREFIX);
         validateConfigOptions(config);
 
         ResolvedCatalogTable catalogTable = context.getCatalogTable();
@@ -87,8 +89,10 @@ public class ClickHouseDynamicTableFactory
                         .orElse(new String[0]);
         Properties clickHouseProperties =
                 getClickHouseProperties(context.getCatalogTable().getOptions());
+        Properties clickHouseSettings =
+                getClickHouseSetting(context.getCatalogTable().getOptions());
         return new ClickHouseDynamicTableSink(
-                getDmlOptions(config),
+                getDmlOptions(config, clickHouseSettings),
                 clickHouseProperties,
                 primaryKeys,
                 catalogTable.getPartitionKeys().toArray(new String[0]),
@@ -99,13 +103,15 @@ public class ClickHouseDynamicTableFactory
     public DynamicTableSource createDynamicTableSource(Context context) {
         TableFactoryHelper helper = FactoryUtil.createTableFactoryHelper(this, context);
         ReadableConfig config = helper.getOptions();
-        helper.validateExcept(PROPERTIES_PREFIX);
+        helper.validateExcept(PROPERTIES_PREFIX, SETTINGS_PREFIX);
         validateConfigOptions(config);
 
         Properties clickHouseProperties =
                 getClickHouseProperties(context.getCatalogTable().getOptions());
+        Properties clickHouseSettings =
+                getClickHouseSetting(context.getCatalogTable().getOptions());
         return new ClickHouseDynamicTableSource(
-                getReadOptions(config),
+                getReadOptions(config, clickHouseSettings),
                 helper.getOptions().get(LookupOptions.MAX_RETRIES),
                 getLookupCache(config),
                 clickHouseProperties,
@@ -189,7 +195,7 @@ public class ClickHouseDynamicTableFactory
         }
     }
 
-    private ClickHouseDmlOptions getDmlOptions(ReadableConfig config) {
+    private ClickHouseDmlOptions getDmlOptions(ReadableConfig config, Properties settings) {
         return new ClickHouseDmlOptions.Builder()
                 .withUrl(config.get(URL))
                 .withUsername(config.get(USERNAME))
@@ -206,10 +212,11 @@ public class ClickHouseDynamicTableFactory
                 .withUseTableDef(config.get(SINK_SHARDING_USE_TABLE_DEF))
                 .withIgnoreDelete(config.get(SINK_IGNORE_DELETE))
                 .withParallelism(config.get(SINK_PARALLELISM))
+                .withSettings(settings)
                 .build();
     }
 
-    private ClickHouseReadOptions getReadOptions(ReadableConfig config) {
+    private ClickHouseReadOptions getReadOptions(ReadableConfig config, Properties settings) {
         return new ClickHouseReadOptions.Builder()
                 .withUrl(config.get(URL))
                 .withUsername(config.get(USERNAME))
@@ -221,6 +228,7 @@ public class ClickHouseDynamicTableFactory
                 .withPartitionNum(config.get(SCAN_PARTITION_NUM))
                 .withPartitionLowerBound(config.get(SCAN_PARTITION_LOWER_BOUND))
                 .withPartitionUpperBound(config.get(SCAN_PARTITION_UPPER_BOUND))
+                .withSettings(settings)
                 .build();
     }
 
