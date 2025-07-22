@@ -1,12 +1,14 @@
 package org.apache.flink.connector.clickhouse.catalog;
 
 import org.apache.flink.connector.clickhouse.config.ClickHouseConfig;
+import org.apache.flink.table.catalog.CatalogBaseTable;
 import org.apache.flink.table.catalog.ObjectPath;
 import org.apache.flink.table.catalog.exceptions.TableNotExistException;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.clickhouse.ClickHouseContainer;
@@ -40,7 +42,8 @@ public class ClickHouseCatalogTest {
         ClickHouseCatalog catalog = new ClickHouseCatalog("default_catalog", properties);
         catalog.open();
         catalog.listDatabases();
-        catalog.getTable(ObjectPath.fromString("system.disks"));
+        CatalogBaseTable table = catalog.getTable(ObjectPath.fromString("system.disks"));
+        Assertions.assertFalse(table.getUnresolvedSchema().getColumns().isEmpty());
     }
 
     @Before

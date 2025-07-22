@@ -81,6 +81,9 @@ limitations under the License.
 									<exclude>log4j:*</exclude>
 									<exclude>org.slf4j:*</exclude>
 									<exclude>com.google.code.findbugs:jsr305</exclude>
+									<exclude>com.google.errorprone:*</exclude>
+									<exclude>org.jspecify:jspecify</exclude>
+									<exclude>com.google.j2objc:j2objc-annotations</exclude>
 								</excludes>
 							</artifactSet>
 							<relocations>
@@ -97,12 +100,28 @@ limitations under the License.
 									<shadedPattern>${shade.base}.org.apache.commons</shadedPattern>
 								</relocation>
 								<relocation>
-									<pattern>org.apache.hc.client5</pattern>
-									<shadedPattern>${shade.base}.org.apache.hc.client5</shadedPattern>
+									<pattern>org.apache.hc</pattern>
+									<shadedPattern>${shade.base}.org.apache.hc</shadedPattern>
 								</relocation>
 								<relocation>
-									<pattern>org.apache.hc.core5</pattern>
-									<shadedPattern>${shade.base}.org.apache.hc.core5</shadedPattern>
+									<pattern>net.jpountz</pattern>
+									<shadedPattern>${shade.base}.net.jpountz</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.antlr</pattern>
+									<shadedPattern>${shade.base}.org.antlr</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.objectweb</pattern>
+									<shadedPattern>${shade.base}.org.objectweb</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.roaringbitmap</pattern>
+									<shadedPattern>${shade.base}.org.roaringbitmap</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.google</pattern>
+									<shadedPattern>${shade.base}.com.google</shadedPattern>
 								</relocation>
 							</relocations>
 							<filters>

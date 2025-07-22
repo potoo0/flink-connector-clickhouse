@@ -58,7 +58,7 @@ limitations under the License.
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.version>4.13.2</junit.version>
-		<clickhouse-jdbc.version>0.8.2</clickhouse-jdbc.version>
+		<clickhouse-jdbc.version>0.8.6</clickhouse-jdbc.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<flink.version>1.19.0</flink.version>
 		<commons-lang3.version>3.13.0</commons-lang3.version>
