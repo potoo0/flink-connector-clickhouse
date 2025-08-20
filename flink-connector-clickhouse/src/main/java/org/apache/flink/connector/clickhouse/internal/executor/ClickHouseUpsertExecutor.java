@@ -136,6 +136,11 @@ public class ClickHouseUpsertExecutor implements ClickHouseExecutor {
                 attemptExecuteBatch(clickHouseStatement, maxRetries);
             }
         }
+        // fixme temporary workaround (pr clickhouse-java#2549):
+        //    Due to a bug in ClickHouse:
+        //      1. after a batch execution, the statements are not automatically cleared;
+        //      2. clearBatch does not completely remove them.
+        prepareStatement(connectionProvider.getOrCreateConnection());
 
         reduceBuffer.clear();
     }
